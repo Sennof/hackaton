@@ -22,26 +22,36 @@ def recommend_plan_adjustments(df):
     return dish_plan[['id_блюда', 'блюдо', 'категория', 'план_порций', 'план_рекомендуемый', 'комментарий']]
 
 #display recommendations by category
-def print_recommendations(df, day_summary, cat_summary, recommendations):
+def print_recommendations(df, day_summary, cat_summary):
     print("\n" + "=" * 60)
     print("РЕКОМЕНДАЦИИ АНАЛИТИКА ПО ФОРМИРОВАНИЮ ПЛАНА НА СЛЕДУЮЩУЮ НЕДЕЛЮ")
     print("=" * 60)
 
     print("\n1. Анализ по дням недели:")
+    has_day_deviations = False
     for _, row in day_summary.iterrows():
         if row['выполнение_плана_%'] < 80:
             print(
                 f"   - {row['день_недели']}: выполнение плана {row['выполнение_плана_%']:.1f}% – ниже целевого. Скорректируйте план вниз.")
+            has_day_deviations = True
         elif row['выполнение_плана_%'] > 120:
             print(
                 f"   - {row['день_недели']}: выполнение плана {row['выполнение_плана_%']:.1f}% – превышение. Увеличьте план.")
+            has_day_deviations = True
+    if not has_day_deviations:
+        print("   Ни один день не имеет выполнения плана ниже 80% или выше 120%.")
 
     print("\n2. Категории с наибольшими отклонениями:")
+    has_cat_deviations = False
     for _, row in cat_summary.iterrows():
         if row['выполнение_плана_%'] < 70:
             print(f"   - {row['категория']}: выполнение {row['выполнение_плана_%']:.1f}% – снизьте план.")
+            has_cat_deviations = True
         elif row['выполнение_плана_%'] > 130:
             print(f"   - {row['категория']}: выполнение {row['выполнение_плана_%']:.1f}% – увеличьте план.")
+            has_cat_deviations = True
+    if not has_cat_deviations:
+        print("   Ни одна категория не имеет выполнения плана ниже 70% или выше 130%.")
 
     print("\n3. Анализ статусов:")
     print(
@@ -57,20 +67,28 @@ def print_recommendations(df, day_summary, cat_summary, recommendations):
         print("   Перерасход (увеличить план):")
         for dish, qty in over.items():
             print(f"      - {dish}: продано {qty} порций > остатка")
+    else:
+        print("   Нет позиций с перерасходом.")
     if not risk.empty:
         print("   Риск (уменьшить план):")
         for dish, qty in risk.items():
             print(f"      - {dish}: продано {qty} порций, выполнение <70%")
+    else:
+        print("   Нет позиций с риском низких продаж.")
 
     print("\n5. Недельные закономерности:")
     weekend = df[df['день_недели'].isin(['Суббота', 'Воскресенье'])]
     weekday = df[~df['день_недели'].isin(['Суббота', 'Воскресенье'])]
     cat_weekend = weekend.groupby('категория')['продано_порций'].sum()
     cat_weekday = weekday.groupby('категория')['продано_порций'].sum()
+    has_weekend_pattern = False
     for cat in cat_weekend.index:
         ratio = cat_weekend[cat] / (cat_weekday[cat] + 1) * 100
         if ratio > 150:
             print(f"   - {cat}: в выходные продажи на {ratio:.0f}% выше, чем в будни – увеличьте план на выходные.")
+            has_weekend_pattern = True
+    if not has_weekend_pattern:
+        print("   Не выявлено категорий с ростом продаж в выходные более чем на 150%.")
 
     print("\n6. Общие рекомендации:")
     print("   - Используйте скорректированный план из листа 'Рекомендации по плану' отчёта.")
