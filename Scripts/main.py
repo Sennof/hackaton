@@ -7,13 +7,13 @@ import chart_builder
 import stability_analyzer
 import abc_analyzer
 
-#USE THIS SCRIPT ONLY FOR DEBUGGING
-#DONT FORGET TO DELETE IMAGES AND TABLE
+# USE THIS SCRIPT ONLY FOR DEBUGGING
+# DONT FORGET TO DELETE IMAGES AND TABLE
 def main():
-    #loading data
+    # loading data
     menu_plan, sales_fact = data_loader.load_data()
 
-    #core
+    # core
     merged = data_processor.merge_and_calc(menu_plan, sales_fact)
     day_summary, cat_summary, status_summary = aggregations.create_summaries(merged)
     rec_df = recommendations.recommend_plan_adjustments(merged)
