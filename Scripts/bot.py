@@ -2,7 +2,6 @@ import os
 import io
 import tempfile
 from contextlib import redirect_stdout
-from pathlib import Path
 
 import pandas as pd
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -16,7 +15,7 @@ from telegram.ext import (
     ContextTypes
 )
 
-# Импортируем наши модули
+# Import our modules
 import data_loader
 import data_processor
 import aggregations
@@ -26,20 +25,19 @@ import chart_builder
 import stability_analyzer
 import abc_analyzer
 
-# Состояния разговора
+# Conversation states
 WAIT_SALES, WAIT_MENU, CALCULATE = range(3)
 
-# Хранилище путей к загруженным файлам в user_data
+# Storage keys for user data
 USER_DATA_SALES = "sales_path"
 USER_DATA_MENU = "menu_path"
 
+#Check that filename matches expected name and has .csv extension
 def validate_filename(filename: str, expected_name: str) -> bool:
-    """Проверяет, что имя файла соответствует expected_name и имеет расширение .csv"""
     return filename.lower() == f"{expected_name.lower()}.csv"
 
+#Handle /start command — initiate the conversation.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Обработчик команды /start — начало диалога"""
-    # Сбрасываем данные пользователя
     context.user_data.clear()
     await update.message.reply_text(
         "Привет! Я помогу вам проанализировать продажи кафе.\n"
@@ -47,8 +45,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     return WAIT_SALES
 
+async def unknown_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Сообщение не распознано")
+
 async def handle_sales_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Обработка файла sales_fact.csv"""
     document = update.message.document
     if not document:
         await update.message.reply_text("Пожалуйста, отправьте файл.")
@@ -62,7 +62,6 @@ async def handle_sales_file(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         )
         return WAIT_SALES
 
-    # Скачиваем файл во временную директорию
     file = await document.get_file()
     with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
         await file.download_to_drive(tmp.name)
@@ -75,7 +74,6 @@ async def handle_sales_file(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     return WAIT_MENU
 
 async def handle_menu_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Обработка файла menu_plan.csv"""
     document = update.message.document
     if not document:
         await update.message.reply_text("Пожалуйста, отправьте файл.")
@@ -89,13 +87,11 @@ async def handle_menu_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         )
         return WAIT_MENU
 
-    # Скачиваем файл
     file = await document.get_file()
     with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
         await file.download_to_drive(tmp.name)
         context.user_data[USER_DATA_MENU] = tmp.name
 
-    # Показываем кнопку "Рассчитать"
     keyboard = [[InlineKeyboardButton("Рассчитать", callback_data="calculate")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
@@ -104,50 +100,40 @@ async def handle_menu_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     )
     return CALCULATE
 
+#Run the analysis after user clicks the button.
 async def calculate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Запуск расчётов после нажатия кнопки"""
     query = update.callback_query
     await query.answer()
 
-    # Получаем пути к загруженным файлам
     sales_path = context.user_data.get(USER_DATA_SALES)
     menu_path = context.user_data.get(USER_DATA_MENU)
     if not sales_path or not menu_path:
         await query.edit_message_text("Ошибка: файлы не найдены. Начните заново с /start")
         return ConversationHandler.END
 
-    # Отправляем сообщение о начале расчёта
     await query.edit_message_text("Выполняю расчёт... Это может занять несколько секунд.")
 
     try:
-        # Загружаем данные
         menu_plan = pd.read_csv(menu_path)
         sales_fact = pd.read_csv(sales_path)
 
-        # Основные вычисления
         merged = data_processor.merge_and_calc(menu_plan, sales_fact)
         day_summary, cat_summary, status_summary = aggregations.create_summaries(merged)
         rec_df = recommendations.recommend_plan_adjustments(merged)
         stability_df = stability_analyzer.calculate_cv(merged)
         abc_df = abc_analyzer.perform_abc_analysis(merged)
 
-        # Сохраняем отчёт Excel
         report_saver.save_report(merged, day_summary, cat_summary, status_summary, rec_df, stability_df, abc_df)
-
-        # Сохраняем графики
         chart_builder.create_charts(day_summary, cat_summary, status_summary, stability_df, abc_df)
 
-        # Собираем текстовый вывод, перенаправляя stdout
         with io.StringIO() as buf, redirect_stdout(buf):
             recommendations.print_recommendations(merged, day_summary, cat_summary)
             stability_analyzer.print_stability_summary(stability_df)
             abc_analyzer.print_abc_summary(abc_df)
             text_output = buf.getvalue()
 
-        # Отправляем текст пользователю
         await query.message.reply_text(text_output)
 
-        # Отправляем графики
         charts = [
             "chart_plan_by_day.png",
             "chart_revenue_by_category.png",
@@ -159,52 +145,61 @@ async def calculate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             if os.path.exists(chart):
                 with open(chart, "rb") as f:
                     await query.message.reply_photo(f)
-                os.remove(chart)  # удаляем после отправки
+                os.remove(chart)
 
-        # Отправляем Excel-отчёт
         with open("report.xlsx", "rb") as f:
             await query.message.reply_document(f)
 
-        # Удаляем временные файлы
         os.remove(sales_path)
         os.remove(menu_path)
         if os.path.exists("report.xlsx"):
             os.remove("report.xlsx")
 
-        # Завершаем разговор
         await query.message.reply_text("Готово! Чтобы начать заново, введите /start")
         return ConversationHandler.END
 
     except Exception as e:
         await query.message.reply_text(f"Произошла ошибка при расчёте:\n{str(e)}")
-        # Возвращаем в начальное состояние
         return ConversationHandler.END
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Отмена диалога (на всякий случай)"""
     await update.message.reply_text("Диалог отменён. Для начала введите /start")
     return ConversationHandler.END
 
+async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    context.user_data.clear()
+    await update.message.reply_text("Программа остановлена, данные сброшены. Чтобы начать заново, введите /start")
+    return ConversationHandler.END
+
 def main() -> None:
-    """Запуск бота"""
-    # Вставьте ваш токен
     TOKEN = "8441656746:AAFnpinvijAfsIVXK3Bjxy1cLTsf6qiVwFU"
 
     application = Application.builder().token(TOKEN).build()
 
+    unknown_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, unknown_message)
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            WAIT_SALES: [MessageHandler(filters.Document.ALL, handle_sales_file)],
-            WAIT_MENU: [MessageHandler(filters.Document.ALL, handle_menu_file)],
-            CALCULATE: [CallbackQueryHandler(calculate, pattern="^calculate$")],
+            WAIT_SALES: [
+                MessageHandler(filters.Document.ALL, handle_sales_file),
+                unknown_handler,
+            ],
+            WAIT_MENU: [
+                MessageHandler(filters.Document.ALL, handle_menu_file),
+                unknown_handler,
+            ],
+            CALCULATE: [
+                CallbackQueryHandler(calculate, pattern="^calculate$"),
+                unknown_handler,
+            ],
         },
-        fallbacks=[CommandHandler("cancel", cancel)],
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+            CommandHandler("stop", stop),
+        ],
     )
 
     application.add_handler(conv_handler)
-
-    # Не реагируем на другие сообщения
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
