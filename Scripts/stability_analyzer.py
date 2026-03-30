@@ -1,18 +1,23 @@
 import pandas as pd
 import numpy as np
 
-# Calculation of the coefficient of variation of sales for each dish by day of the week
+
 def calculate_cv(df):
     """
     Рассчитывает коэффициент вариации продаж для каждого блюда по дням недели.
     Возвращает DataFrame с полями: id_блюда, блюдо, категория, cv, стабильность, рекомендация.
     """
+    # Группируем по блюду и дню недели, суммируем продажи
     daily_sales = df.groupby(['id_блюда', 'блюдо', 'категория', 'день_недели'])['продано_порций'].sum().reset_index()
 
+    # Получаем список всех дней недели для полноты (если в какой-то день не было продаж, будет 0)
     days_order = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
     full_days = pd.DataFrame({'день_недели': days_order})
+
+    # Для каждого блюда создаём полную таблицу дней
     result = []
     for (id_, dish, cat), group in daily_sales.groupby(['id_блюда', 'блюдо', 'категория']):
+        # Слияние с полным списком дней, заполняем пропуски 0
         merged = full_days.merge(group, on='день_недели', how='left')
         merged['продано_порций'] = merged['продано_порций'].fillna(0).astype(int)
         sales = merged['продано_порций'].values
@@ -22,7 +27,7 @@ def calculate_cv(df):
         else:
             cv = 0
 
-        # Classification of stability
+        # Классификация стабильности
         if cv < 30:
             stability = 'Стабильные'
             recommendation = 'План можно оставить без изменений, прогноз простой.'
@@ -44,13 +49,17 @@ def calculate_cv(df):
 
     return pd.DataFrame(result)
 
-# Output to the console
+
 def print_stability_summary(stability_df):
+    """Выводит в консоль краткую сводку по стабильности."""
+    print("\n" + "=" * 60)
     print("АНАЛИЗ СТАБИЛЬНОСТИ ПРОДАЖ")
+    print("=" * 60)
     summary = stability_df.groupby('стабильность').size().reset_index(name='количество')
     for _, row in summary.iterrows():
         print(f"   - {row['стабильность']}: {row['количество']} позиций")
 
+    # Показываем топ-3 самых нестабильных и самых стабильных
     if not stability_df.empty:
         print("\n   Самые нестабильные позиции (топ-3):")
         top_unstable = stability_df.nlargest(3, 'коэффициент_вариации_%')
@@ -61,3 +70,4 @@ def print_stability_summary(stability_df):
         top_stable = stability_df.nsmallest(3, 'коэффициент_вариации_%')
         for _, row in top_stable.iterrows():
             print(f"      - {row['блюдо']}: CV = {row['коэффициент_вариации_%']}%")
+    print("=" * 60 + "\n")
