@@ -1,8 +1,11 @@
 import os
 import io
 import tempfile
+import threading
 import pandas as pd
 from contextlib import redirect_stdout
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
 from telegram.constants import ParseMode
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -24,6 +27,23 @@ import chart_builder
 import stability_analyzer
 import abc_analyzer
 
+def start_health_server():
+    class HealthHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == '/health':
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b'OK')
+            else:
+                self.send_response(404)
+                self.end_headers()
+
+    port = int(os.environ.get('PORT', 10000))
+    server = HTTPServer(('0.0.0.0', port), HealthHandler)
+    server.serve_forever()
+
+threading.Thread(target=start_health_server, daemon=True).start()
+
 WAIT_SALES, WAIT_MENU, CALCULATE = range(3)
 
 USER_DATA_SALES = "sales_path"
@@ -39,7 +59,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         "Пожалуйста, отправьте файл с фактическими продажами (sales_fact.csv).",
         parse_mode=ParseMode.HTML,
     )
-
     return WAIT_SALES
 
 async def unknown_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -53,9 +72,8 @@ async def handle_sales_file(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if not document:
         await update.message.reply_text(
             "👇Пожалуйста, отправьте <i>файл.</i>👇",
-           parse_mode=ParseMode.HTML
+            parse_mode=ParseMode.HTML
         )
-
         return WAIT_SALES
 
     filename = document.file_name
@@ -77,7 +95,6 @@ async def handle_sales_file(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         "Теперь отправьте файл с планом <i>(menu_plan.csv)</i>.",
         parse_mode=ParseMode.HTML
     )
-
     return WAIT_MENU
 
 async def handle_menu_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -87,7 +104,6 @@ async def handle_menu_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             "📄Пожалуйста, отправьте <i>файл.</i>📄",
             parse_mode=ParseMode.HTML
         )
-
         return WAIT_MENU
 
     filename = document.file_name
@@ -98,7 +114,6 @@ async def handle_menu_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             "\nПопробуйте ещё раз.",
             parse_mode=ParseMode.HTML
         )
-
         return WAIT_MENU
 
     file = await document.get_file()
@@ -114,10 +129,8 @@ async def handle_menu_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         reply_markup=reply_markup,
         parse_mode=ParseMode.HTML,
     )
-
     return CALCULATE
 
-# Run the analysis after user clicks the button.
 async def calculate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
@@ -130,7 +143,6 @@ async def calculate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             "\nНачните заново с <i>/start</i>",
             parse_mode=ParseMode.HTML
         )
-
         return ConversationHandler.END
 
     await query.edit_message_text(
@@ -189,7 +201,6 @@ async def calculate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             "\nЧтобы начать заново, введите <i>/start</i>",
             parse_mode=ParseMode.HTML
         )
-
         return ConversationHandler.END
 
     except Exception as e:
@@ -198,17 +209,7 @@ async def calculate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             f"\n{str(e)}",
             parse_mode=ParseMode.HTML
         )
-
         return ConversationHandler.END
-
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text(
-        "👋<b>Диалог отменён.</b>👋"
-        "\nДля начала введите <i>/start</i>",
-        parse_mode=ParseMode.HTML
-    )
-
-    return ConversationHandler.END
 
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data.clear()
@@ -217,11 +218,13 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         "\nДанные сброшены. Чтобы начать заново, введите <i>/start</i>",
         parse_mode=ParseMode.HTML
     )
-
     return ConversationHandler.END
 
 def main() -> None:
-    TOKEN = "8441656746:AAFnpinvijAfsIVXK3Bjxy1cLTsf6qiVwFU"
+    TOKEN = os.getenv("TELEGRAM_TOKEN")
+    if not TOKEN:
+        print("Ошибка: переменная окружения TELEGRAM_TOKEN не установлена.")
+        return
 
     application = Application.builder().token(TOKEN).build()
 
@@ -243,7 +246,6 @@ def main() -> None:
             ],
         },
         fallbacks=[
-            CommandHandler("cancel", cancel),
             CommandHandler("stop", stop),
         ],
     )
