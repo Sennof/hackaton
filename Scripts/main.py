@@ -7,6 +7,8 @@ import chart_builder
 import stability_analyzer
 import abc_analyzer
 
+#USE THIS SCRIPT ONLY FOR DEBUGGING
+#DONT FORGET TO DELETE IMAGES AND TABLE
 def main():
     #loading data
     menu_plan, sales_fact = data_loader.load_data()
