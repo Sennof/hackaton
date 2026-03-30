@@ -1,6 +1,7 @@
 import pandas as pd
 
-#Performs ABC analysis on dishes based on total revenue.
+
+# Performing ABC-analysis
 def perform_abc_analysis(df):
     dish_revenue = df.groupby(['блюдо', 'категория'])['выручка'].sum().reset_index()
     dish_revenue = dish_revenue.sort_values('выручка', ascending=False).reset_index(drop=True)
@@ -21,7 +22,7 @@ def perform_abc_analysis(df):
     for i, cond in enumerate(conditions):
         dish_revenue.loc[cond, 'abc_категория'] = choices[i]
 
-    # Management recommendations for each category
+    # Management recommendations
     rec_map = {
         'A': 'Основные позиции: поддерживать наличие, контролировать запасы, проводить акции с осторожностью.',
         'B': 'Стабильные позиции: поддерживать план, возможно умеренное продвижение.',
@@ -31,9 +32,9 @@ def perform_abc_analysis(df):
 
     return dish_revenue
 
-#Prints a summary of ABC analysis results to the console.
+# Console output
 def print_abc_summary(abc_df):
-    print("ABC-АНАЛИЗ БЛЮД (ПО ВЫРУЧКЕ)")
+    print("\n\n🔎<b>ABC-АНАЛИЗ БЛЮД (ПО ВЫРУЧКЕ)</b>🔎")
     summary = abc_df.groupby('abc_категория').agg({
         'блюдо': 'count',
         'выручка': 'sum'
@@ -44,12 +45,12 @@ def print_abc_summary(abc_df):
         print(f"   Категория {row['abc_категория']}: {row['количество_позиций']} позиций, "
               f"выручка {row['общая_выручка']:,.0f} руб. ({row['доля_выручки_%']}%)")
 
-    print("\n   Топ-5 позиций категории A:")
+    print("\n   <i>Топ-5 позиций категории A:</i>")
     top_a = abc_df[abc_df['abc_категория'] == 'A'].head(5)
     for _, row in top_a.iterrows():
         print(f"      - {row['блюдо']}: {row['выручка']:,.0f} руб. ({row['доля_%']}%)")
 
-    print("\n   Позиции категории C (можно пересмотреть):")
+    print("\n   <i>Позиции категории C (можно пересмотреть):</i>")
     c_items = abc_df[abc_df['abc_категория'] == 'C']
     if not c_items.empty:
         for _, row in c_items.iterrows():
