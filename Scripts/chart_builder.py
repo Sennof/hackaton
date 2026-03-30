@@ -2,8 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def create_charts(day_summary, cat_summary, status_summary):
-    """Строит и сохраняет три графика."""
-    # График 1: выполнение плана по дням недели
+    # Plan execution by day of the week
     plt.figure(figsize=(10, 5))
     days_order = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
     day_summary['день_недели'] = pd.Categorical(day_summary['день_недели'], categories=days_order, ordered=True)
@@ -17,7 +16,7 @@ def create_charts(day_summary, cat_summary, status_summary):
     plt.savefig('chart_plan_by_day.png', dpi=150)
     plt.close()
 
-    # График 2: выручка по категориям
+    # Revenue by category
     plt.figure(figsize=(10, 5))
     plt.bar(cat_summary['категория'], cat_summary['выручка'], color='lightgreen')
     plt.title('Выручка по категориям, руб.')
@@ -28,7 +27,7 @@ def create_charts(day_summary, cat_summary, status_summary):
     plt.savefig('chart_revenue_by_category.png', dpi=150)
     plt.close()
 
-    # График 3: распределение статусов
+    # Distribution of statuses
     plt.figure(figsize=(8, 5))
     colors = {'Перерасход': 'red', 'Риск': 'orange', 'Норма': 'green'}
     status_summary['color'] = status_summary['статус'].map(colors)

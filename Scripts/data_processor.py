@@ -1,7 +1,7 @@
 import pandas as pd
 
+# Combining tables and calculating their components
 def merge_and_calc(menu_plan, sales_fact):
-    """Объединяет таблицы, рассчитывает выполнение плана, выручку и статус."""
     merged = menu_plan.merge(sales_fact, on=['дата', 'день_недели', 'id_блюда'], how='left')
     merged['продано_порций'] = merged['продано_порций'].fillna(0).astype(int)
 
