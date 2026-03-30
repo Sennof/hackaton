@@ -1,13 +1,16 @@
 import pandas as pd
 import numpy as np
 
-
 # Calculation of the coefficient of variation of sales for each dish by day of the week
 def calculate_cv(df):
+    """
+    Рассчитывает коэффициент вариации продаж для каждого блюда по дням недели.
+    Возвращает DataFrame с полями: id_блюда, блюдо, категория, cv, стабильность, рекомендация.
+    """
     daily_sales = df.groupby(['id_блюда', 'блюдо', 'категория', 'день_недели'])['продано_порций'].sum().reset_index()
+
     days_order = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
     full_days = pd.DataFrame({'день_недели': days_order})
-
     result = []
     for (id_, dish, cat), group in daily_sales.groupby(['id_блюда', 'блюдо', 'категория']):
         merged = full_days.merge(group, on='день_недели', how='left')

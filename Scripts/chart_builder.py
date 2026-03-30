@@ -1,8 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
-def create_charts(day_summary, cat_summary, status_summary, stability_df):
+def create_charts(day_summary, cat_summary, status_summary, stability_df, abc_df):
     # Plan execution by day of the week
     plt.figure(figsize=(10, 5))
     days_order = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
@@ -52,4 +51,18 @@ def create_charts(day_summary, cat_summary, status_summary, stability_df):
     plt.ylabel('Количество позиций')
     plt.tight_layout()
     plt.savefig('chart_stability.png', dpi=150)
+    plt.close()
+
+    # ABC distribution
+    plt.figure(figsize=(8, 5))
+    abc_counts = abc_df.groupby('abc_категория').size().reset_index(name='количество')
+    abc_counts = abc_counts.sort_values('abc_категория')
+    colors_abc = {'A': 'gold', 'B': 'silver', 'C': 'peru'}
+    plt.bar(abc_counts['abc_категория'], abc_counts['количество'],
+            color=[colors_abc[cat] for cat in abc_counts['abc_категория']])
+    plt.title('Количество позиций по категориям ABC')
+    plt.xlabel('Категория ABC')
+    plt.ylabel('Количество позиций')
+    plt.tight_layout()
+    plt.savefig('chart_abc_distribution.png', dpi=150)
     plt.close()
