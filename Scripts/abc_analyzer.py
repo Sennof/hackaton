@@ -32,7 +32,7 @@ def perform_abc_analysis(df):
 
     return dish_revenue
 
-# Output to the console
+# Console output
 def print_abc_summary(abc_df):
     print("\n\n🔎<b>ABC-АНАЛИЗ БЛЮД (ПО ВЫРУЧКЕ)</b>🔎")
     summary = abc_df.groupby('abc_категория').agg({

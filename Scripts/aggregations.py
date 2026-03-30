@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 
 def create_summaries(df):
-    # Creating pivot tables
     day_summary = df.groupby('день_недели', as_index=False).agg({
         'продано_порций': 'sum',
         'план_порций': 'sum',
