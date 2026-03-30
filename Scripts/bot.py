@@ -1,9 +1,8 @@
 import os
 import io
 import tempfile
-from contextlib import redirect_stdout
-
 import pandas as pd
+from contextlib import redirect_stdout
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -15,7 +14,7 @@ from telegram.ext import (
     ContextTypes
 )
 
-# Import our modules
+# Import modules
 import data_loader
 import data_processor
 import aggregations
@@ -32,11 +31,11 @@ WAIT_SALES, WAIT_MENU, CALCULATE = range(3)
 USER_DATA_SALES = "sales_path"
 USER_DATA_MENU = "menu_path"
 
-#Check that filename matches expected name and has .csv extension
+# Check that filename matches expected name and has .csv extension
 def validate_filename(filename: str, expected_name: str) -> bool:
     return filename.lower() == f"{expected_name.lower()}.csv"
 
-#Handle /start command — initiate the conversation.
+# Handle /start command — initiate the conversation.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data.clear()
     await update.message.reply_text(
@@ -100,7 +99,7 @@ async def handle_menu_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     )
     return CALCULATE
 
-#Run the analysis after user clicks the button.
+# Run the analysis after user clicks the button.
 async def calculate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
