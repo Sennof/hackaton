@@ -15,7 +15,7 @@ def main():
     rec_df = recommendations.recommend_plan_adjustments(merged)
     report_saver.save_report(merged, day_summary, cat_summary, status_summary, rec_df)
     chart_builder.create_charts(day_summary, cat_summary, status_summary)
-    recommendations.print_recommendations(merged, day_summary, cat_summary, rec_df)
+    recommendations.print_recommendations(merged, day_summary, cat_summary)
 
     #logging
     print("Готово! Созданы файлы:")
