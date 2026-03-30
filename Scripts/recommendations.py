@@ -60,7 +60,8 @@ def print_recommendations(df, day_summary, cat_summary):
     print(f"   - Норма: {len(df[df['статус'] == 'Норма'])} записей – план можно оставить без изменений.")
 
     print("\n4. Ключевые позиции для корректировки (первые 5 перерасходов и 5 рисков):")
-    over = df[df['статус'] == 'Перерасход'].groupby('блюдо')['продано_порций'].sum().sort_values(ascending=False).head(5)
+    over = df[df['статус'] == 'Перерасход'].groupby('блюдо')['продано_порций'].sum().sort_values(ascending=False).head(
+        5)
     risk = df[df['статус'] == 'Риск'].groupby('блюдо')['продано_порций'].sum().sort_values(ascending=False).head(5)
     if not over.empty:
         print("   Перерасход (увеличить план):")

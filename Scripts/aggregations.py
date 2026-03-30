@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 def create_summaries(df):
     # Creating pivot tables
     day_summary = df.groupby('день_недели', as_index=False).agg({
@@ -14,12 +15,19 @@ def create_summaries(df):
         0
     )
 
-    # Summary by categories and statuses
+    # Summary by categories
     cat_summary = df.groupby('категория', as_index=False).agg({
         'продано_порций': 'sum',
         'план_порций': 'sum',
         'выручка': 'sum'
     })
+    cat_summary['выполнение_плана_%'] = np.where(
+        cat_summary['план_порций'] != 0,
+        (cat_summary['продано_порций'] / cat_summary['план_порций'] * 100).round(1),
+        0
+    )
+
+    # Summary by statuses
     status_summary = df.groupby('статус', as_index=False).size().rename(columns={'size': 'количество_позиций'})
 
     return day_summary, cat_summary, status_summary
