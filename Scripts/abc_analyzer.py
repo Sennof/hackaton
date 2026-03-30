@@ -6,7 +6,6 @@ def perform_abc_analysis(df):
     dish_revenue = df.groupby(['блюдо', 'категория'])['выручка'].sum().reset_index()
     dish_revenue = dish_revenue.sort_values('выручка', ascending=False).reset_index(drop=True)
 
-    # Total revenue
     total_revenue = dish_revenue['выручка'].sum()
 
     dish_revenue['доля_%'] = (dish_revenue['выручка'] / total_revenue * 100).round(1)
@@ -35,7 +34,7 @@ def perform_abc_analysis(df):
 
 # Output to the console
 def print_abc_summary(abc_df):
-    print("\n\nABC-АНАЛИЗ БЛЮД (ПО ВЫРУЧКЕ)")
+    print("\n\n🔎<b>ABC-АНАЛИЗ БЛЮД (ПО ВЫРУЧКЕ)</b>🔎")
     summary = abc_df.groupby('abc_категория').agg({
         'блюдо': 'count',
         'выручка': 'sum'
@@ -46,12 +45,12 @@ def print_abc_summary(abc_df):
         print(f"   Категория {row['abc_категория']}: {row['количество_позиций']} позиций, "
               f"выручка {row['общая_выручка']:,.0f} руб. ({row['доля_выручки_%']}%)")
 
-    print("\n   Топ-5 позиций категории A:")
+    print("\n   <i>Топ-5 позиций категории A:</i>")
     top_a = abc_df[abc_df['abc_категория'] == 'A'].head(5)
     for _, row in top_a.iterrows():
         print(f"      - {row['блюдо']}: {row['выручка']:,.0f} руб. ({row['доля_%']}%)")
 
-    print("\n   Позиции категории C (можно пересмотреть):")
+    print("\n   <i>Позиции категории C (можно пересмотреть):</i>")
     c_items = abc_df[abc_df['abc_категория'] == 'C']
     if not c_items.empty:
         for _, row in c_items.iterrows():

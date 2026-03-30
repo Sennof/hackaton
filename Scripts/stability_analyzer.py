@@ -41,20 +41,20 @@ def calculate_cv(df):
 
     return pd.DataFrame(result)
 
-# Output to the console
+# console output
 def print_stability_summary(stability_df):
-    print("АНАЛИЗ СТАБИЛЬНОСТИ ПРОДАЖ")
+    print("\n\n🧮<b>АНАЛИЗ СТАБИЛЬНОСТИ ПРОДАЖ</b>🧮")
     summary = stability_df.groupby('стабильность').size().reset_index(name='количество')
     for _, row in summary.iterrows():
         print(f"   - {row['стабильность']}: {row['количество']} позиций")
 
     if not stability_df.empty:
-        print("\n   Самые нестабильные позиции (топ-3):")
+        print("\n   <i>Самые нестабильные позиции</i> (топ-3):")
         top_unstable = stability_df.nlargest(3, 'коэффициент_вариации_%')
         for _, row in top_unstable.iterrows():
             print(f"      - {row['блюдо']}: CV = {row['коэффициент_вариации_%']}%")
 
-        print("\n   Самые стабильные позиции (топ-3):")
+        print("\n   <i>Самые стабильные позиции</i> (топ-3):")
         top_stable = stability_df.nsmallest(3, 'коэффициент_вариации_%')
         for _, row in top_stable.iterrows():
             print(f"      - {row['блюдо']}: CV = {row['коэффициент_вариации_%']}%")

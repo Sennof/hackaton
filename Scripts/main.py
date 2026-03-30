@@ -25,8 +25,8 @@ def main():
     stability_analyzer.print_stability_summary(stability_df)
     abc_analyzer.print_abc_summary(abc_df)
 
-    # logging
-    print("\n\nГотово! Созданы файлы:")
+    #logging
+    print("\n\n👌Готово! Созданы файлы:👌")
     print(" - report.xlsx")
     print(" - chart_plan_by_day.png")
     print(" - chart_revenue_by_category.png")
