@@ -25,7 +25,7 @@ def recommend_plan_adjustments(df):
 def print_recommendations(df, day_summary, cat_summary):
     print("РЕКОМЕНДАЦИИ АНАЛИТИКА ПО ФОРМИРОВАНИЮ ПЛАНА НА СЛЕДУЮЩУЮ НЕДЕЛЮ")
 
-    print("\n1. Анализ по дням недели:")
+    print("1. Анализ по дням недели:")
     has_day_deviations = False
     for _, row in day_summary.iterrows():
         if row['выполнение_плана_%'] < 80:
@@ -39,7 +39,7 @@ def print_recommendations(df, day_summary, cat_summary):
     if not has_day_deviations:
         print("   Ни один день не имеет выполнения плана ниже 80% или выше 120%.")
 
-    print("\n2. Категории с наибольшими отклонениями:")
+    print("2. Категории с наибольшими отклонениями:")
     has_cat_deviations = False
     for _, row in cat_summary.iterrows():
         if row['выполнение_плана_%'] < 70:
@@ -51,13 +51,13 @@ def print_recommendations(df, day_summary, cat_summary):
     if not has_cat_deviations:
         print("   Ни одна категория не имеет выполнения плана ниже 70% или выше 130%.")
 
-    print("\n3. Анализ статусов:")
+    print("3. Анализ статусов:")
     print(
         f"   - Перерасход: {len(df[df['статус'] == 'Перерасход'])} записей – увеличьте план и остатки для этих позиций.")
     print(f"   - Риск: {len(df[df['статус'] == 'Риск'])} записей – пересмотрите план вниз или проведите промо.")
     print(f"   - Норма: {len(df[df['статус'] == 'Норма'])} записей – план можно оставить без изменений.")
 
-    print("\n4. Ключевые позиции для корректировки (первые 5 перерасходов и 5 рисков):")
+    print("4. Ключевые позиции для корректировки (первые 5 перерасходов и 5 рисков):")
     over = df[df['статус'] == 'Перерасход'].groupby('блюдо')['продано_порций'].sum().sort_values(ascending=False).head(
         5)
     risk = df[df['статус'] == 'Риск'].groupby('блюдо')['продано_порций'].sum().sort_values(ascending=False).head(5)
@@ -74,7 +74,7 @@ def print_recommendations(df, day_summary, cat_summary):
     else:
         print("   Нет позиций с риском низких продаж.")
 
-    print("\n5. Недельные закономерности:")
+    print("5. Недельные закономерности:")
     weekend = df[df['день_недели'].isin(['Суббота', 'Воскресенье'])]
     weekday = df[~df['день_недели'].isin(['Суббота', 'Воскресенье'])]
     cat_weekend = weekend.groupby('категория')['продано_порций'].sum()
@@ -88,7 +88,7 @@ def print_recommendations(df, day_summary, cat_summary):
     if not has_weekend_pattern:
         print("   Не выявлено категорий с ростом продаж в выходные более чем на 150%.")
 
-    print("\n6. Общие рекомендации:")
+    print("6. Общие рекомендации:")
     print("   - Используйте скорректированный план из листа 'Рекомендации по плану' отчёта.")
     print("   - Увеличьте остатки на начало дня для позиций с перерасходом.")
     print("   - Внедрите динамическое планирование: каждую неделю пересматривайте планы на основе данных.")

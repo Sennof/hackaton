@@ -52,9 +52,7 @@ def calculate_cv(df):
 
 def print_stability_summary(stability_df):
     """Выводит в консоль краткую сводку по стабильности."""
-    print("\n" + "=" * 60)
     print("АНАЛИЗ СТАБИЛЬНОСТИ ПРОДАЖ")
-    print("=" * 60)
     summary = stability_df.groupby('стабильность').size().reset_index(name='количество')
     for _, row in summary.iterrows():
         print(f"   - {row['стабильность']}: {row['количество']} позиций")
@@ -70,4 +68,3 @@ def print_stability_summary(stability_df):
         top_stable = stability_df.nsmallest(3, 'коэффициент_вариации_%')
         for _, row in top_stable.iterrows():
             print(f"      - {row['блюдо']}: CV = {row['коэффициент_вариации_%']}%")
-    print("=" * 60 + "\n")

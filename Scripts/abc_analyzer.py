@@ -42,9 +42,7 @@ def perform_abc_analysis(df):
 
 def print_abc_summary(abc_df):
     """Выводит в консоль краткую сводку ABC-анализа."""
-    print("\n" + "=" * 60)
-    print("ABC-АНАЛИЗ БЛЮД (ПО ВЫРУЧКЕ)")
-    print("=" * 60)
+    print("\n\nABC-АНАЛИЗ БЛЮД (ПО ВЫРУЧКЕ)")
     summary = abc_df.groupby('abc_категория').agg({
         'блюдо': 'count',
         'выручка': 'sum'
@@ -67,4 +65,3 @@ def print_abc_summary(abc_df):
             print(f"      - {row['блюдо']}: {row['выручка']:,.0f} руб. ({row['доля_%']}%)")
     else:
         print("      Нет позиций категории C.")
-    print("=" * 60 + "\n")

@@ -26,7 +26,7 @@ def main():
     abc_analyzer.print_abc_summary(abc_df)
 
     #logging
-    print("Готово! Созданы файлы:")
+    print("\n\nГотово! Созданы файлы:")
     print(" - report.xlsx")
     print(" - chart_plan_by_day.png")
     print(" - chart_revenue_by_category.png")
