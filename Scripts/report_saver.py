@@ -1,7 +1,7 @@
 import pandas as pd
 
+#excel
 def save_report(df, day_summary, cat_summary, status_summary, recommendations):
-    """Сохраняет все таблицы в один Excel-файл."""
     with pd.ExcelWriter('report.xlsx', engine='openpyxl') as writer:
         df.to_excel(writer, sheet_name='Детальные данные', index=False)
         day_summary.to_excel(writer, sheet_name='Сводка по дням', index=False)
