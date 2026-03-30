@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def create_charts(day_summary, cat_summary, status_summary):
+def create_charts(day_summary, cat_summary, status_summary, stability_df):
     # Plan execution by day of the week
     plt.figure(figsize=(10, 5))
     days_order = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
@@ -37,4 +37,18 @@ def create_charts(day_summary, cat_summary, status_summary):
     plt.ylabel('Количество позиций')
     plt.tight_layout()
     plt.savefig('chart_status_distribution.png', dpi=150)
+    plt.close()
+
+    # NEW: Distribution of stability categories
+    plt.figure(figsize=(8, 5))
+    stability_counts = stability_df.groupby('стабильность').size().reset_index(name='количество')
+    stability_counts = stability_counts.sort_values('стабильность', ascending=False)
+    colors = {'Стабильные': 'green', 'Средняя стабильность': 'orange', 'Нестабильные': 'red'}
+    plt.bar(stability_counts['стабильность'], stability_counts['количество'],
+            color=[colors[cat] for cat in stability_counts['стабильность']])
+    plt.title('Распределение позиций по стабильности продаж')
+    plt.xlabel('Стабильность')
+    plt.ylabel('Количество позиций')
+    plt.tight_layout()
+    plt.savefig('chart_stability.png', dpi=150)
     plt.close()
