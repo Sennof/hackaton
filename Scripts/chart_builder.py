@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 def create_charts(day_summary, cat_summary, status_summary, stability_df):
     # Plan execution by day of the week
     plt.figure(figsize=(10, 5))
@@ -39,7 +40,7 @@ def create_charts(day_summary, cat_summary, status_summary, stability_df):
     plt.savefig('chart_status_distribution.png', dpi=150)
     plt.close()
 
-    # NEW: Distribution of stability categories
+    # Distribution of stability categories
     plt.figure(figsize=(8, 5))
     stability_counts = stability_df.groupby('стабильность').size().reset_index(name='количество')
     stability_counts = stability_counts.sort_values('стабильность', ascending=False)

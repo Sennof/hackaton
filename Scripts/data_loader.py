@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 # Uploading data from CSV
 def load_data():
     menu_plan = pd.read_csv('menu_plan.csv')

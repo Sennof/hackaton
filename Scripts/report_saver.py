@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def save_report(df, day_summary, cat_summary, status_summary, recommendations, stability_df):
     with pd.ExcelWriter('report.xlsx', engine='openpyxl') as writer:
         df.to_excel(writer, sheet_name='Детальные данные', index=False)

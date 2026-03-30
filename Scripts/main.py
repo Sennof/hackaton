@@ -4,7 +4,8 @@ import aggregations
 import recommendations
 import report_saver
 import chart_builder
-import stability_analyzer  # новый модуль
+import stability_analyzer
+
 
 def main():
     #loading data
@@ -14,11 +15,11 @@ def main():
     merged = data_processor.merge_and_calc(menu_plan, sales_fact)
     day_summary, cat_summary, status_summary = aggregations.create_summaries(merged)
     rec_df = recommendations.recommend_plan_adjustments(merged)
-    stability_df = stability_analyzer.calculate_cv(merged)  # новый расчёт
+    stability_df = stability_analyzer.calculate_cv(merged)
     report_saver.save_report(merged, day_summary, cat_summary, status_summary, rec_df, stability_df)
-    chart_builder.create_charts(day_summary, cat_summary, status_summary, stability_df)  # передаём stability_df
+    chart_builder.create_charts(day_summary, cat_summary, status_summary, stability_df)
     recommendations.print_recommendations(merged, day_summary, cat_summary)
-    stability_analyzer.print_stability_summary(stability_df)  # вывод в консоль
+    stability_analyzer.print_stability_summary(stability_df)
 
     #logging
     print("Готово! Созданы файлы:")
@@ -26,7 +27,7 @@ def main():
     print(" - chart_plan_by_day.png")
     print(" - chart_revenue_by_category.png")
     print(" - chart_status_distribution.png")
-    print(" - chart_stability.png")  # новый график
+    print(" - chart_stability.png")
 
 if __name__ == "__main__":
     main()
