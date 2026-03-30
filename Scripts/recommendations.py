@@ -2,8 +2,6 @@ import pandas as pd
 
 
 def recommend_plan_adjustments(df):
-    """Формирует рекомендации по корректировке плана на следующую неделю."""
-    # Для каждого блюда определяем наиболее частый статус за неделю
     dish_status = df.groupby('id_блюда')['статус'].agg(
         lambda x: x.mode()[0] if not x.mode().empty else 'Норма'
     ).reset_index()
@@ -11,10 +9,8 @@ def recommend_plan_adjustments(df):
     coeff_map = {'Перерасход': 1.2, 'Риск': 0.8, 'Норма': 1.0}
     dish_status['коэффициент'] = dish_status['статус'].map(coeff_map)
 
-    # Средний план на день по каждому блюду
     dish_plan = df.groupby(['id_блюда', 'блюдо', 'категория'])['план_порций'].mean().reset_index()
 
-    # Слияние со статусами
     dish_plan = dish_plan.merge(dish_status[['id_блюда', 'статус', 'коэффициент']], on='id_блюда')
 
     dish_plan['план_рекомендуемый'] = (dish_plan['план_порций'] * dish_plan['коэффициент']).round().astype(int)
@@ -25,14 +21,12 @@ def recommend_plan_adjustments(df):
     )
     return dish_plan[['id_блюда', 'блюдо', 'категория', 'план_порций', 'план_рекомендуемый', 'комментарий']]
 
-
+#display recommendations by category
 def print_recommendations(df, day_summary, cat_summary, recommendations):
-    """Выводит аналитические рекомендации в консоль."""
     print("\n" + "=" * 60)
     print("РЕКОМЕНДАЦИИ АНАЛИТИКА ПО ФОРМИРОВАНИЮ ПЛАНА НА СЛЕДУЮЩУЮ НЕДЕЛЮ")
     print("=" * 60)
 
-    # 1. Общие выводы по дням недели
     print("\n1. Анализ по дням недели:")
     for _, row in day_summary.iterrows():
         if row['выполнение_плана_%'] < 80:
@@ -42,7 +36,6 @@ def print_recommendations(df, day_summary, cat_summary, recommendations):
             print(
                 f"   - {row['день_недели']}: выполнение плана {row['выполнение_плана_%']:.1f}% – превышение. Увеличьте план.")
 
-    # 2. По категориям
     print("\n2. Категории с наибольшими отклонениями:")
     for _, row in cat_summary.iterrows():
         if row['выполнение_плана_%'] < 70:
@@ -50,14 +43,12 @@ def print_recommendations(df, day_summary, cat_summary, recommendations):
         elif row['выполнение_плана_%'] > 130:
             print(f"   - {row['категория']}: выполнение {row['выполнение_плана_%']:.1f}% – увеличьте план.")
 
-    # 3. По статусам
     print("\n3. Анализ статусов:")
     print(
         f"   - Перерасход: {len(df[df['статус'] == 'Перерасход'])} записей – увеличьте план и остатки для этих позиций.")
     print(f"   - Риск: {len(df[df['статус'] == 'Риск'])} записей – пересмотрите план вниз или проведите промо.")
     print(f"   - Норма: {len(df[df['статус'] == 'Норма'])} записей – план можно оставить без изменений.")
 
-    # 4. Конкретные позиции
     print("\n4. Ключевые позиции для корректировки (первые 5 перерасходов и 5 рисков):")
     over = df[df['статус'] == 'Перерасход'].groupby('блюдо')['продано_порций'].sum().sort_values(ascending=False).head(
         5)
@@ -71,7 +62,6 @@ def print_recommendations(df, day_summary, cat_summary, recommendations):
         for dish, qty in risk.items():
             print(f"      - {dish}: продано {qty} порций, выполнение <70%")
 
-    # 5. Недельные закономерности
     print("\n5. Недельные закономерности:")
     weekend = df[df['день_недели'].isin(['Суббота', 'Воскресенье'])]
     weekday = df[~df['день_недели'].isin(['Суббота', 'Воскресенье'])]
@@ -82,7 +72,6 @@ def print_recommendations(df, day_summary, cat_summary, recommendations):
         if ratio > 150:
             print(f"   - {cat}: в выходные продажи на {ratio:.0f}% выше, чем в будни – увеличьте план на выходные.")
 
-    # 6. Общие рекомендации
     print("\n6. Общие рекомендации:")
     print("   - Используйте скорректированный план из листа 'Рекомендации по плану' отчёта.")
     print("   - Увеличьте остатки на начало дня для позиций с перерасходом.")
