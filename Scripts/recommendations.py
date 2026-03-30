@@ -21,7 +21,7 @@ def recommend_plan_adjustments(df):
     )
     return dish_plan[['id_блюда', 'блюдо', 'категория', 'план_порций', 'план_рекомендуемый', 'комментарий']]
 
-#display recommendations by category
+# Display recommendations by category
 def print_recommendations(df, day_summary, cat_summary):
     print("\n" + "=" * 60)
     print("РЕКОМЕНДАЦИИ АНАЛИТИКА ПО ФОРМИРОВАНИЮ ПЛАНА НА СЛЕДУЮЩУЮ НЕДЕЛЮ")
