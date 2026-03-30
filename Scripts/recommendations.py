@@ -23,9 +23,7 @@ def recommend_plan_adjustments(df):
 
 # Display recommendations by category
 def print_recommendations(df, day_summary, cat_summary):
-    print("\n" + "=" * 60)
     print("РЕКОМЕНДАЦИИ АНАЛИТИКА ПО ФОРМИРОВАНИЮ ПЛАНА НА СЛЕДУЮЩУЮ НЕДЕЛЮ")
-    print("=" * 60)
 
     print("\n1. Анализ по дням недели:")
     has_day_deviations = False
@@ -95,4 +93,3 @@ def print_recommendations(df, day_summary, cat_summary):
     print("   - Увеличьте остатки на начало дня для позиций с перерасходом.")
     print("   - Внедрите динамическое планирование: каждую неделю пересматривайте планы на основе данных.")
     print("   - Учитывайте сезонные факторы (погода, праздники) при планировании.")
-    print("=" * 60 + "\n")

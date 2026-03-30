@@ -1,23 +1,15 @@
 import pandas as pd
 
-
+#Performs ABC analysis on dishes based on total revenue.
 def perform_abc_analysis(df):
-    """
-    Выполняет ABC-анализ по сумме выручки блюд за неделю.
-    Возвращает DataFrame с полями: блюдо, категория, общая_выручка, доля_%, кумулятивная_доля_%, abc_категория.
-    """
-    # Группируем по блюду и категории, суммируем выручку
     dish_revenue = df.groupby(['блюдо', 'категория'])['выручка'].sum().reset_index()
     dish_revenue = dish_revenue.sort_values('выручка', ascending=False).reset_index(drop=True)
 
-    # Общая выручка
     total_revenue = dish_revenue['выручка'].sum()
 
-    # Расчёт доли и кумулятивной доли
     dish_revenue['доля_%'] = (dish_revenue['выручка'] / total_revenue * 100).round(1)
     dish_revenue['кумулятивная_доля_%'] = dish_revenue['доля_%'].cumsum().round(1)
 
-    # Присвоение категорий ABC
     conditions = [
         dish_revenue['кумулятивная_доля_%'] <= 80,
         (dish_revenue['кумулятивная_доля_%'] > 80) & (dish_revenue['кумулятивная_доля_%'] <= 95),
@@ -29,7 +21,7 @@ def perform_abc_analysis(df):
     for i, cond in enumerate(conditions):
         dish_revenue.loc[cond, 'abc_категория'] = choices[i]
 
-    # Добавляем рекомендации по управлению
+    # Management recommendations for each category
     rec_map = {
         'A': 'Основные позиции: поддерживать наличие, контролировать запасы, проводить акции с осторожностью.',
         'B': 'Стабильные позиции: поддерживать план, возможно умеренное продвижение.',
@@ -39,12 +31,9 @@ def perform_abc_analysis(df):
 
     return dish_revenue
 
-
+#Prints a summary of ABC analysis results to the console.
 def print_abc_summary(abc_df):
-    """Выводит в консоль краткую сводку ABC-анализа."""
-    print("\n" + "=" * 60)
     print("ABC-АНАЛИЗ БЛЮД (ПО ВЫРУЧКЕ)")
-    print("=" * 60)
     summary = abc_df.groupby('abc_категория').agg({
         'блюдо': 'count',
         'выручка': 'sum'
@@ -67,4 +56,3 @@ def print_abc_summary(abc_df):
             print(f"      - {row['блюдо']}: {row['выручка']:,.0f} руб. ({row['доля_%']}%)")
     else:
         print("      Нет позиций категории C.")
-    print("=" * 60 + "\n")
